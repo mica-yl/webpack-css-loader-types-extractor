@@ -49,3 +49,10 @@ module.exports = {
   // ...
 };
 ```
+
+also ignore generated files in git.
+
+`.gitignore`
+```gitignore
+*.css.d.ts
+```
