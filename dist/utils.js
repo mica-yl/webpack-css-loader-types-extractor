@@ -16,13 +16,24 @@ function ModuleToSource(m) {
     // const { _source: { _name: n, _value: v } } = m;
     const name = n.split('!')[1];
     const source = v.split('// Exports\n')[1];
-    const fn0 = source.replace(/export (default)?/, 'return');
+    const fn0 = source
+        // named exports
+        .replaceAll(/export var /g, '___CSS_LOADER_EXPORT___.')
+        .replace(/export (default)?/g, 'return');
     const fn = `(function (){
                 const ___CSS_LOADER_EXPORT___ ={};
                 ${fn0}
               })()`;
+    const obj = (() => {
+        try {
+            return eval(fn);
+        }
+        catch (err) {
+            throw Error(`${path} :Parsing error with parsing string.\n ${fn}`);
+        }
+    })();
     // eslint-disable-next-line no-eval
-    return { name, source: eval(fn), path: p };
+    return { name, source: obj, path: p };
 }
 exports.ModuleToSource = ModuleToSource;
 function SourceToFile(sourceObject) {
@@ -35,7 +46,7 @@ const css = ${JSON.stringify(source, null, 2)} as const;
 
 type Rest = {toString:()=>string};
 
-const Export : typeof css && Rest = css;
+const Export : typeof css & Rest = css;
 
 export default Export;
 `;
