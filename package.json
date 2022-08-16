@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "git:push": "git push upstream main",
+    "dist:add": "git add dist"
   },
   "keywords": [
     "webpack",
