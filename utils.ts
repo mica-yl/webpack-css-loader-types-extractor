@@ -1,5 +1,6 @@
 import fs from 'fs';
 import * as webpack from 'webpack';
+import Inspector from 'node:inspector';
 
 
 export type AbstractModule = {
@@ -45,3 +46,7 @@ export function writeToFile(fileObject: AbstractModule, writeFile: (typeof fs.wr
     if (err) console.log(fileObject, 'failed with', err);
   });
 }
+
+// log in inspector only
+const log = Inspector.console.log;
+export const inspect = <X>(input: X) => (log(input), input);

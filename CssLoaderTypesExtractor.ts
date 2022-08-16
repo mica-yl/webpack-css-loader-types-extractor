@@ -1,11 +1,22 @@
 import webpack from 'webpack';
 import fs from 'fs';
-import { moduleToAbstract, ModuleToSource, SourceToFile, writeToFile } from './utils';
+import { inspect, moduleToAbstract, ModuleToSource, SourceToFile, writeToFile } from './utils';
+
 
 
 type CssLoaderTypesExtractorOptions = {
-  writeFunction: (typeof fs.writeFile)
+  /**
+   * using custom `writeFile` instead of `fs.writeFile` 
+   */
+  writeFunction: (typeof fs.writeFile),
+  /**
+   * log into inspector when using `node --inspect`
+   */
+  debug: boolean,
 };
+
+
+// TODO named exports
 
 /* eslint-disable class-methods-use-this */
 
@@ -14,10 +25,13 @@ export default class CssLoaderTypesExtractor {
 
   #writeFuction = fs.writeFile;
 
+  #debug = false;
+
   #modules = [];
 
   constructor(options?: CssLoaderTypesExtractorOptions) {
-    this.#writeFuction = options?.writeFunction || fs.writeFile;
+    this.#writeFuction = options?.writeFunction || this.#writeFuction;
+    this.#debug = options?.debug || this.#debug;
   }
 
   apply(compiler: webpack.Compiler) {
@@ -34,9 +48,11 @@ export default class CssLoaderTypesExtractor {
       this.#pluginName,
       () => {
         this.#modules
+          .map(this.#debug ? inspect : x => x)
           .map(moduleToAbstract)
           .map(ModuleToSource)
           .map(SourceToFile)
+          .map(this.#debug ? inspect : x => x)
           .map(file => writeToFile(file, this.#writeFuction));
         // clear modules.
         this.#modules = [];
