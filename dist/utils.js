@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.writeToFile = exports.SourceToFile = exports.ModuleToSource = exports.moduleToAbstract = void 0;
+exports.inspect = exports.writeToFile = exports.SourceToFile = exports.ModuleToSource = exports.moduleToAbstract = void 0;
+const node_inspector_1 = __importDefault(require("node:inspector"));
 const moduleToAbstract = (m) => ({
     name: m._source._name,
     source: m._source._value,
@@ -23,12 +27,17 @@ function ModuleToSource(m) {
 exports.ModuleToSource = ModuleToSource;
 function SourceToFile(sourceObject) {
     const { name, source, path } = sourceObject;
+    // TODO add the array.
     const file = `/* eslint-disable quote-props */
 /* eslint-disable comma-dangle */
 /* eslint-disable quotes */
 const css = ${JSON.stringify(source, null, 2)} as const;
 
-export default css;
+type Rest = {toString:()=>string};
+
+const Export : typeof css && Rest = css;
+
+export default Export;
 `;
     return { name: name.concat('.d.ts'), source: file, path: path?.concat('.d.ts') };
 }
@@ -41,4 +50,8 @@ function writeToFile(fileObject, writeFile) {
     });
 }
 exports.writeToFile = writeToFile;
+// log in inspector only
+const log = node_inspector_1.default.console.log;
+const inspect = (input) => (log(input), input);
+exports.inspect = inspect;
 //# sourceMappingURL=utils.js.map

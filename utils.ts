@@ -30,12 +30,17 @@ export function ModuleToSource(m: AbstractModule) {
 }
 export function SourceToFile(sourceObject: AbstractModule) {
   const { name, source, path } = sourceObject;
+  // TODO add the array.
   const file = `/* eslint-disable quote-props */
 /* eslint-disable comma-dangle */
 /* eslint-disable quotes */
 const css = ${JSON.stringify(source, null, 2)} as const;
 
-export default css;
+type Rest = {toString:()=>string};
+
+const Export : typeof css && Rest = css;
+
+export default Export;
 `;
   return { name: name.concat('.d.ts'), source: file, path: path?.concat('.d.ts') };
 }

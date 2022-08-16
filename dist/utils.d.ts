@@ -22,3 +22,4 @@ export declare function SourceToFile(sourceObject: AbstractModule): {
     path: string;
 };
 export declare function writeToFile(fileObject: AbstractModule, writeFile: (typeof fs.writeFile)): void;
+export declare const inspect: <X>(input: X) => X;

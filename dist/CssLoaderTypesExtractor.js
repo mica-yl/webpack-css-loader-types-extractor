@@ -5,13 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const utils_1 = require("./utils");
+// TODO named exports
 /* eslint-disable class-methods-use-this */
 class CssLoaderTypesExtractor {
     #pluginName = 'CssLoaderTypesExtractor';
     #writeFuction = fs_1.default.writeFile;
+    #debug = false;
     #modules = [];
     constructor(options) {
-        this.#writeFuction = options?.writeFunction || fs_1.default.writeFile;
+        this.#writeFuction = options?.writeFunction || this.#writeFuction;
+        this.#debug = options?.debug || this.#debug;
     }
     apply(compiler) {
         compiler.hooks.thisCompilation.tap(this.#pluginName, (compilation) => {
@@ -24,9 +27,11 @@ class CssLoaderTypesExtractor {
         });
         compiler.hooks.afterDone.tap(this.#pluginName, () => {
             this.#modules
+                .map(this.#debug ? utils_1.inspect : x => x)
                 .map(utils_1.moduleToAbstract)
                 .map(utils_1.ModuleToSource)
                 .map(utils_1.SourceToFile)
+                .map(this.#debug ? utils_1.inspect : x => x)
                 .map(file => (0, utils_1.writeToFile)(file, this.#writeFuction));
             // clear modules.
             this.#modules = [];
