@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+#source https://github.com/microsoft/TypeScript/pull/491#issuecomment-52837074
+npm run build
+exit_code=$?
+
+if [ "$exit_code" -eq 0 -o "$exit_code" -eq 2 ] ;then
+	npm run dist:add
+	exit 0;
+
+else 
+	exit exit_code;
+fi
