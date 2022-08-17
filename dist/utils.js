@@ -11,42 +11,56 @@ const moduleToAbstract = (m) => ({
     path: m.resource,
 });
 exports.moduleToAbstract = moduleToAbstract;
-function ModuleToSource(m) {
+function ModuleToSource(m, options) {
     const { name: n, path: p, source: v } = m;
     // const { _source: { _name: n, _value: v } } = m;
     const name = n.split('!')[1];
-    const source = v.split('// Exports\n')[1];
-    const fn0 = source
+    const objExports = v.split('// Exports\n')[1];
+    const fn0 = objExports
         // named exports
         .replaceAll(/export var /g, '___CSS_LOADER_EXPORT___.')
         .replace(/export (default)?/g, 'return');
-    const fn = `(function (){
+    const source = [];
+    const $eval = ((body) => {
+        try {
+            return eval(body);
+        }
+        catch (err) {
+            throw Error(`${p} :Parsing error with parsing string.\n ${body} \nwith error: ${err}`);
+        }
+    });
+    const ObjString = `(function (){
                 const ___CSS_LOADER_EXPORT___ ={};
                 ${fn0}
               })()`;
-    const obj = (() => {
-        try {
-            return eval(fn);
-        }
-        catch (err) {
-            throw Error(`${path} :Parsing error with parsing string.\n ${fn}`);
-        }
-    })();
+    source.push($eval(ObjString));
+    if (options.withValue) {
+        const objArray = v.match(/(?<Arr>\/\/ Module.*?)\s\//s)?.groups?.Arr || '';
+        const ArrayString = `(function (){
+    const module= {id:'${name || p}'};
+    const ___CSS_LOADER_EXPORT___ =[];
+    ${objArray}
+    return ___CSS_LOADER_EXPORT___;
+  })()`;
+        source.push($eval(ArrayString));
+    }
     // eslint-disable-next-line no-eval
-    return { name, source: obj, path: p };
+    return { name, source, path: p };
 }
 exports.ModuleToSource = ModuleToSource;
 function SourceToFile(sourceObject) {
-    const { name, source, path } = sourceObject;
+    const { name, source: [source, value], path } = sourceObject;
     // TODO add the array.
     const file = `/* eslint-disable quote-props */
 /* eslint-disable comma-dangle */
 /* eslint-disable quotes */
 const css = ${JSON.stringify(source, null, 2)} as const;
 
+const value = ${value ? JSON.stringify(value, null, 2) : '{}'} as const;
+
 type Rest = {toString:()=>string};
 
-const Export : typeof css & Rest = css;
+const Export : typeof css & Rest & typeof value = css;
 
 export default Export;
 `;

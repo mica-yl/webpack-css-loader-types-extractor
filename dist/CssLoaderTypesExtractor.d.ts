@@ -5,11 +5,16 @@ declare type CssLoaderTypesExtractorOptions = {
     /**
      * using custom `writeFile` instead of `fs.writeFile`
      */
-    writeFunction: (typeof fs.writeFile);
+    writeFunction?: (typeof fs.writeFile);
     /**
      * log into inspector when using `node --inspect`
      */
-    debug: boolean;
+    debug?: boolean;
+    /**
+     * adds array value of object
+     * @default true
+     */
+    withValue?: boolean;
 };
 export default class CssLoaderTypesExtractor {
     #private;

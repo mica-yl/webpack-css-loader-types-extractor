@@ -11,10 +11,18 @@ class CssLoaderTypesExtractor {
     #pluginName = 'CssLoaderTypesExtractor';
     #writeFuction = fs_1.default.writeFile;
     #debug = false;
+    #withValue = true;
     #modules = [];
     constructor(options) {
-        this.#writeFuction = options?.writeFunction || this.#writeFuction;
-        this.#debug = options?.debug || this.#debug;
+        if (options?.writeFunction !== undefined) {
+            this.#writeFuction = options.writeFunction;
+        }
+        if (options?.debug !== undefined) {
+            this.#debug = options.debug;
+        }
+        if (options?.withValue !== undefined) {
+            this.#withValue = options.withValue;
+        }
     }
     apply(compiler) {
         compiler.hooks.thisCompilation.tap(this.#pluginName, (compilation) => {
@@ -29,7 +37,9 @@ class CssLoaderTypesExtractor {
             this.#modules
                 .map(this.#debug ? utils_1.inspect : x => x)
                 .map(utils_1.moduleToAbstract)
-                .map(utils_1.ModuleToSource)
+                //  make it more efficient
+                .map(m => (0, utils_1.ModuleToSource)(m, { withValue: this.#withValue }))
+                // .map(this.#withValue ? x => x : m => ({ ...m, source: [m.source[0]] }))
                 .map(utils_1.SourceToFile)
                 .map(this.#debug ? utils_1.inspect : x => x)
                 .map(file => (0, utils_1.writeToFile)(file, this.#writeFuction));

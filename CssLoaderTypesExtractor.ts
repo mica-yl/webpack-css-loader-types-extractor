@@ -8,11 +8,16 @@ type CssLoaderTypesExtractorOptions = {
   /**
    * using custom `writeFile` instead of `fs.writeFile` 
    */
-  writeFunction: (typeof fs.writeFile),
+  writeFunction?: (typeof fs.writeFile),
   /**
    * log into inspector when using `node --inspect`
    */
-  debug: boolean,
+  debug?: boolean,
+  /**
+   * adds array value of object 
+   * @default true
+   */
+  withValue?: boolean,
 };
 
 
@@ -27,11 +32,15 @@ export default class CssLoaderTypesExtractor {
 
   #debug = false;
 
+  #withValue = true;
+
   #modules = [];
 
   constructor(options?: CssLoaderTypesExtractorOptions) {
-    this.#writeFuction = options?.writeFunction || this.#writeFuction;
-    this.#debug = options?.debug || this.#debug;
+    if (options?.writeFunction !== undefined) { this.#writeFuction = options.writeFunction; }
+    if (options?.debug !== undefined) { this.#debug = options.debug; }
+    if (options?.withValue !== undefined) { this.#withValue = options.withValue; }
+  
   }
 
   apply(compiler: webpack.Compiler) {
@@ -50,7 +59,10 @@ export default class CssLoaderTypesExtractor {
         this.#modules
           .map(this.#debug ? inspect : x => x)
           .map(moduleToAbstract)
-          .map(ModuleToSource)
+          //  make it more efficient
+          .map(m => ModuleToSource(m, { withValue: this.#withValue }))
+          // .map(this.#withValue ? x => x : m => ({ ...m, source: [m.source[0]] }))
+
           .map(SourceToFile)
           .map(this.#debug ? inspect : x => x)
           .map(file => writeToFile(file, this.#writeFuction));
